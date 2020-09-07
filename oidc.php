@@ -7,18 +7,44 @@ require __DIR__ . '/vendor/autoload.php';
 use Jumbojett\OpenIDConnectClient;
 
 function get_oidc_client() {
-	$oidc = new OpenIDConnectClient('https://id.provider.com');
+	global $conf;
+	$config = $conf['OIDC'];
+	
+	// Create OIDC client
+	$oidc = new OpenIDConnectClient(
+		$config['issuer_url'] ?? '',
+		$config['client_id'] ?? '',
+		$config['client_secret'] ?? ''
+	);
+
+	// Set verification bits
+	$oidc->setVerifyHost($config['verify_host']);
+	$oidc->setVerifyPeer($config['verify_peer']);
+
+	// Set HTTP proxy
+	if (!empty($config['proxy'])) {
+		$oidc->setHttpProxy($config['proxy']);
+	}
+
+	// Set auth params
+	if ($array = json_decode($config['authparam'], true) !== null) {
+		$oidc->addAuthParam($array);
+	}
+
+	// Set scopes
+	$oidc->addScope(explode(' ', $config['scope']));
+
 	return $oidc;
 }
 
 function can_authorization_grant() {
-	$oidc = get_oidc_client();
-	return false;
+	global $conf;
+	return $conf['OIDC']['authorization_code_flow'];
 }
 
 function can_resource_owner_credentials_grant() {
-	$oidc = get_oidc_client();
-	return false;
+	global $conf;
+	return $conf['OIDC']['password_flow'];
 }
 
 // Redirect a user to the auth.php page, which handles authorization flow
@@ -50,7 +76,7 @@ function oidc_login($oidc, $token, $remember_me)
 
 	// If the user is not found, try to register
 	if (empty($row['id'])) {
-		if ($conf['allow_user_registration']) {
+		if ($conf['OIDC']['register_new_users']) {
 			// Registration is allowed, overwrite $row
 			$email = $oidc->requestUserInfo('email');
 			$row['id'] = register_user($name, random_pass(), $email);

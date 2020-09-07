@@ -19,6 +19,7 @@ require(OIDC_PATH . 'oidc.php');
 
 /// Link event handlers
 // The menubar is cached in the block manager before applying the full template
+add_event_handler('plugins_loaded', 'oidc_init'); // earliest init possible
 add_event_handler('blockmanager_apply', 'override_login_link');
 add_event_handler('try_log_user', 'login', 0, 4);
 add_event_handler('loc_begin_identification', 'redirect_auth');
@@ -54,6 +55,12 @@ function is_token_unexpired($access_token): bool
 }
 
 /// Event handlers
+function oidc_init()
+{
+	global $conf;
+	$conf['OIDC'] = safe_unserialize($conf['OIDC']);
+}
+
 /**
  * Rewrite the login link to link to the authorization code flow
  */
