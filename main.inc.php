@@ -62,6 +62,11 @@ function oidc_init()
 {
 	global $conf;
 	$conf['OIDC'] = safe_unserialize($conf['OIDC']);
+
+	if (file_exists(OIDC_PATH . 'conf.php')) {
+		$overrideConfig = include(OIDC_PATH . 'conf.php');
+		$conf['OIDC'] = array_merge($conf['OIDC'], $overrideConfig);
+	}
 }
 
 /**
