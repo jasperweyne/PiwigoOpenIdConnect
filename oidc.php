@@ -59,13 +59,17 @@ function redirect_auth()
 }
 
 /// Login/logout methods
-function oidc_login($oidc, $token, $remember_me)
+function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
 {
 	global $conf;
+	$config = $conf['OIDC'];
 
 	// Fetch name
 	// Note: this value must be unique, therefore we use sub
 	$name = $oidc->requestUserInfo('sub');
+	if (!empty($config['preferred_username'] && $preferred = $oidc->requestUserInfo($config['preferred_username']))) {
+		$name = $preferred;
+	}
 
 	// Find user in piwigo database
 	$query = '
@@ -76,10 +80,10 @@ function oidc_login($oidc, $token, $remember_me)
 
 	// If the user is not found, try to register
 	if (empty($row['id'])) {
-		if ($conf['OIDC']['register_new_users']) {
+		if ($config['register_new_users']) {
 			// Registration is allowed, overwrite $row
 			$email = $oidc->requestUserInfo('email');
-			$row['id'] = register_user($name, random_pass(), $email);
+			$row['id'] = register_user($name, random_pass(), $email, $config['notify_admins_on_register'], [], $config['notify_user_on_register']);
 		} else {
 			// Registration is not allowed, fail
 			return false;
