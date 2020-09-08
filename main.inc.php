@@ -20,6 +20,7 @@ require(OIDC_PATH . 'oidc.php');
 /// Link event handlers
 // The menubar is cached in the block manager before applying the full template
 add_event_handler('plugins_loaded', 'oidc_init'); // earliest init possible
+add_event_handler('load_profile_in_template', 'oidc_profile');
 add_event_handler('blockmanager_apply', 'override_login_link');
 add_event_handler('try_log_user', 'login', 0, 4);
 add_event_handler('loc_begin_identification', 'redirect_auth');
@@ -59,6 +60,18 @@ function oidc_init()
 {
 	global $conf;
 	$conf['OIDC'] = safe_unserialize($conf['OIDC']);
+}
+
+/**
+ * Removes the Profile/Registration block.
+ */
+function oidc_profile()
+{
+	global $template;
+
+	if (isset($_SESSION[OIDC_SESSION])) {
+		$template->assign('SPECIAL_USER', true);
+	}
 }
 
 /**
@@ -141,8 +154,9 @@ function password_login($success, $username, $password, $remember_me)
 		'username' => $username,
 		'password' => $password,
 	]);
-	if ($token = $oidc->requestResourceOwnerToken(true)) {
-		$success = oidc_login($oidc, $token, $remember_me);
+	$response = $oidc->requestResourceOwnerToken(true);
+	if (isset($response->access_token)) {
+		$success = oidc_login($oidc, $response, $remember_me);
 	}
 
 	// If login unsuccessful, trigger login_failure accordingly

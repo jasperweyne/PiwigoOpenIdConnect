@@ -2,6 +2,32 @@
 
 defined('OIDC_PATH') or die('Hacking attempt!');
 
+if (isset($_POST['authorization_test']))
+{
+	$_SESSION[OIDC_SESSION . 'test'] = 'init';
+	redirect(OIDC_PATH . 'auth.php'); 
+}
+
+if (isset($_POST['password_test']))
+{
+	$oidc = get_oidc_client();
+	$oidc->addAuthParam([
+		'username' => $_POST['password_test_user'],
+		'password' => $_POST['password_test_pass'],
+	]);
+
+	try {
+		$response = $oidc->requestResourceOwnerToken(true);
+		if (isset($response->access_token)) {
+			$page['infos'][] = l10n('Resource owner credentials flow successful!');
+		} else {
+			$page['errors'][] = $response->error . (isset($response->error_description) ? ': ' . $response->error_description : '');
+		}
+	} catch (\Exception $e) {
+		$page['errors'][] = $e->getMessage();
+	}
+}
+
 if (isset($_POST['save_config']))
 {
 	$conf['OIDC'] = [
@@ -29,6 +55,7 @@ if (isset($_POST['save_config']))
 }
 
 $template->assign($conf['OIDC']);
+$template->assign(['redirect_url' => embellish_url(get_absolute_root_url() . OIDC_PATH . 'auth.php')]);
 
 $template->set_filename('oidc_config', realpath(OIDC_PATH . 'template/config.tpl'));
 $template->assign_var_from_handle('ADMIN_CONTENT', 'oidc_config');

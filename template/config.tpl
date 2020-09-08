@@ -2,6 +2,10 @@
 	<h2>OpenID Connect</h2>
 </div>
 
+<form method="post" action="" id="test_auth" target="_blank"></form>
+<form method="post" action="" id="test_pass"></form>
+
+
 <div id="configContent">
 <form method="post" action="" class="properties">
 <fieldset id="mainConf">
@@ -27,7 +31,32 @@
 </fieldset>
 
 <fieldset id="mainConf">
+    <legend>{'Test OpenID connection'|translate}</legend>
+	<ul>
+		<li>
+			<input form="test_auth" type="submit" name="authorization_test" value="{'Test authorization code flow'|translate}">
+		</li>
+	</ul>
+	<ul>
+		<li>
+			<label for="password_test_user">{'Username'|translate}</label>
+			<br />
+			<input form="test_pass" type="text" name="password_test_user" id="password_test_user" value="{$password_test_user}">
+		</li>
+		<li>
+			<label for="password_test_pass">{'Password'|translate}</label>
+			<br />
+			<input form="test_pass" type="password" name="password_test_pass" id="password_test_pass" value="{$password_test_pass}">
+		</li>
+		<li>
+			<input form="test_pass" type="submit" name="password_test" value="{'Test resource owner credentials flow'|translate}">
+		</li>
+	</ul>
+</fieldset>
+
+<fieldset id="mainConf">
     <legend>{'Authorization Code Flow'|translate}</legend>
+	<i style="display:inline-block;max-width:30rem">Please register '{$redirect_url}' as the redirect URL with your OpenID Provider.</i>
 	<ul>
 		<li>
 			<input type="checkbox" name="authorization_code_flow" id="authorization_code_flow" {if $authorization_code_flow}checked="checked"{/if}>
