@@ -22,8 +22,10 @@ require(OIDC_PATH . 'oidc.php');
 add_event_handler('plugins_loaded', 'oidc_init'); // earliest init possible
 add_event_handler('load_profile_in_template', 'oidc_profile');
 add_event_handler('blockmanager_apply', 'override_login_link');
-add_event_handler('try_log_user', 'login', 0, 4);
-add_event_handler('loc_begin_identification', 'redirect_auth');
+add_event_handler('loc_begin_password', 'oidc_redirect');
+add_event_handler('loc_begin_register', 'oidc_redirect');
+add_event_handler('try_log_user', 'password_login', 0, 4);
+add_event_handler('loc_begin_identification', 'oidc_identification');
 add_event_handler('user_init', 'refresh_login');
 add_event_handler('get_admin_plugin_menu_links', 'oidc_admin_link');
 
@@ -84,6 +86,47 @@ function override_login_link()
 	// If U_LOGIN is present and authorization grant is enabled, replace U_LOGIN link
 	if ($template->get_template_vars('U_LOGIN') !== null && can_authorization_grant())
 		$template->assign('U_LOGIN', OIDC_PATH . 'auth.php');
+
+	// If resource owner credentials grant is enabled, set U_REGISTER to registration url
+	if (can_resource_owner_credentials_grant()) {
+		if (!empty($conf['OIDC']['registration_url']))
+			$template->assign('U_REGISTER', $conf['OIDC']['registration_url']);
+		else
+			$template->clear_assign('U_REGISTER');
+	}
+}
+
+function oidc_identification()
+{
+	global $template;
+	global $conf;
+
+	redirect_auth();
+
+	if (can_resource_owner_credentials_grant()) {
+		if ($template->get_template_vars('U_LOST_PASSWORD') !== null) {
+			// Password lost URL
+			if (!empty($conf['OIDC']['password_reset_url']))
+				$template->assign('U_LOST_PASSWORD', $conf['OIDC']['password_reset_url']);
+			else
+				$template->clear_assign('U_LOST_PASSWORD');
+
+			// Registration URL
+			if (!empty($conf['OIDC']['registration_url']))
+				$template->assign('U_REGISTER', $conf['OIDC']['registration_url']);
+			else
+				$template->clear_assign('U_REGISTER');
+		}
+	}
+}
+
+function oidc_redirect()
+{
+	redirect_auth();
+
+	if (can_resource_owner_credentials_grant()) {
+		redirect(get_root_url() . 'identification.php');
+	}
 }
 
 /**
