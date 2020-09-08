@@ -30,6 +30,7 @@ add_event_handler('try_log_user', 'password_login', 0, 4);
 add_event_handler('loc_begin_identification', 'oidc_identification');
 add_event_handler('user_init', 'refresh_login');
 add_event_handler('get_admin_plugin_menu_links', 'oidc_admin_link');
+add_event_handler('delete_user', 'oidc_delete_user');
 
 /// Utility methods
 /**
@@ -219,5 +220,14 @@ function oidc_admin_link($menu)
     	'URL' => OIDC_ADMIN,
 	];
 	return $menu;
+}
+
+function oidc_delete_user($user_id)
+{
+	$query = '
+	DELETE FROM '.OIDC_TABLE.'
+	  WHERE `user_id` = '.$user_id.'
+	;';
+	pwg_query($query);
 }
 ?>
