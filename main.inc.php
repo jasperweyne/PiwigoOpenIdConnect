@@ -165,7 +165,7 @@ function refresh_login($user)
 	try {
 		$oidc = get_oidc_client();
 		$_SESSION[OIDC_SESSION] = json_encode($oidc->refreshToken($accessToken->refresh_token));
-	} catch (\Jumbojett\OpenIDConnectClientException $e) {
+	} catch (\Exception $e) {
 		// Log out if an unknown problem arises
 		$page['errors'][] = $e->getMessage();
 		oidc_logout();
