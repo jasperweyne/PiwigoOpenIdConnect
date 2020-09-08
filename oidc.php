@@ -79,10 +79,10 @@ function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
 	$row = pwg_db_fetch_assoc(pwg_query($query));
 
 	// If the user is not found, try to register
+	$email = $oidc->requestUserInfo('email');
 	if (empty($row['id'])) {
 		if ($config['register_new_users']) {
 			// Registration is allowed, overwrite $row
-			$email = $oidc->requestUserInfo('email');
 			$row['id'] = register_user($name, random_pass(), $email, $config['notify_admins_on_register'], [], $config['notify_user_on_register']);
 		} else {
 			// Registration is not allowed, fail
@@ -94,7 +94,18 @@ function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
 	$_SESSION[OIDC_SESSION] = json_encode($token);
 
 	// Update user data from ID token data
-	// ToDo
+	$fields = array($conf['user_fields']['email']);
+
+	$data = array();
+	$data[$conf['user_fields']['id']] = $row['id'];
+	$data[$conf['user_fields']['email']] = $email;
+	
+	mass_updates(USERS_TABLE,
+				array(
+				'primary' => array($conf['user_fields']['id']),
+				'update' => $fields
+				),
+				array($data));
 
 	// Log the user in
 	log_user($row['id'], $remember_me);
