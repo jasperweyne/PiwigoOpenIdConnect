@@ -33,6 +33,11 @@ class OpenIdConnect_maintain extends PluginMaintain
 		}
 	}
 
+	function activate($plugin_version, &$errors = array())
+	{
+		$this->install($plugin_version, $errors);
+	}
+
 	function update($old_version, $new_version, &$errors=array())
 	{
 		$this->install($new_version, $errors);
