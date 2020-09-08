@@ -64,27 +64,32 @@ function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
 	global $conf;
 	$config = $conf['OIDC'];
 
+	// Find user in piwigo database
+	$sub = $oidc->requestUserInfo('sub');
+	$query = '
+		SELECT `user_id` AS id
+		FROM ' . OIDC_TABLE . '
+		WHERE `sub` = \'' . pwg_db_real_escape_string($sub) . '\';';
+	$row = pwg_db_fetch_assoc(pwg_query($query));
+
 	// Fetch name
 	// Note: this value must be unique, therefore we use sub
 	$name = $oidc->requestUserInfo('sub');
 	if (!empty($config['preferred_username'] && $preferred = $oidc->requestUserInfo($config['preferred_username']))) {
 		$name = $preferred;
 	}
-
-	// Find user in piwigo database
-	$query = '
-		SELECT ' . $conf['user_fields']['id'] . ' AS id
-		FROM ' . USERS_TABLE . '
-		WHERE ' . $conf['user_fields']['username'] . ' = \'' . pwg_db_real_escape_string($name) . '\';';
-	$row = pwg_db_fetch_assoc(pwg_query($query));
+	$email = $oidc->requestUserInfo('email');
 
 	// If the user is not found, try to register
-	$email = $oidc->requestUserInfo('email');
 	if (empty($row['id'])) {
 		if ($config['register_new_users']) {
 			// Registration is allowed, overwrite $row
 			$errors = [];
 			$row['id'] = register_user($name, random_pass(), $email, $config['notify_admins_on_register'], $errors, $config['notify_user_on_register']);
+			single_insert(OIDC_TABLE, [
+				'sub' => $sub,
+				'user_id' => $row['id'],
+			]);
 		} else {
 			// Registration is not allowed, fail
 			return false;
@@ -95,11 +100,12 @@ function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
 	$_SESSION[OIDC_SESSION] = json_encode($token);
 
 	// Update user data from ID token data
-	$fields = array($conf['user_fields']['email']);
+	$fields = array($conf['user_fields']['email'], $conf['user_fields']['username']);
 
 	$data = array();
 	$data[$conf['user_fields']['id']] = $row['id'];
 	$data[$conf['user_fields']['email']] = $email;
+	$data[$conf['user_fields']['username']] = $name;
 	
 	mass_updates(USERS_TABLE,
 				array(

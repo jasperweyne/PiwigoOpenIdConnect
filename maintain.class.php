@@ -26,11 +26,15 @@ class OpenIdConnect_maintain extends PluginMaintain
 	function install($plugin_version, &$errors=array())
 	{
 		global $conf;
+		global $prefixeTable;
 
 		if (empty($conf['OIDC']))
 		{
 			conf_update_param('OIDC', $this->default_conf, true);
 		}
+
+		$query="CREATE TABLE IF NOT EXISTS  `" . $prefixeTable . "oidc` (`sub` VARCHAR(255) CHARACTER SET utf8,`user_id` text CHARACTER SET utf8, UNIQUE KEY `sub` (`sub`)) ENGINE = MyISAM CHARSET=utf8 COLLATE utf8_general_ci;";
+		pwg_query($query);
 	}
 
 	function activate($plugin_version, &$errors = array())
@@ -46,6 +50,9 @@ class OpenIdConnect_maintain extends PluginMaintain
 	function uninstall()
 	{
 		conf_delete_param('OIDC');
+
+		$query="DROP TABLE IF EXISTS `" . $prefixeTable . "oidc`;";
+		pwg_query($query);
 	}
 }
 ?>
