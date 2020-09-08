@@ -83,7 +83,8 @@ function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
 	if (empty($row['id'])) {
 		if ($config['register_new_users']) {
 			// Registration is allowed, overwrite $row
-			$row['id'] = register_user($name, random_pass(), $email, $config['notify_admins_on_register'], [], $config['notify_user_on_register']);
+			$errors = [];
+			$row['id'] = register_user($name, random_pass(), $email, $config['notify_admins_on_register'], $errors, $config['notify_user_on_register']);
 		} else {
 			// Registration is not allowed, fail
 			return false;

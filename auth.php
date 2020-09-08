@@ -48,7 +48,7 @@ try {
 
     // Authentication flow
     if ($success) {
-        oidc_login($oidc, $oidc->getAccessToken(), false);
+        oidc_login($oidc, $oidc->getTokenResponse(), false);
     } else {
         $_SESSION['page_warnings'][] = l10n('Login not successful, try again.');
     }

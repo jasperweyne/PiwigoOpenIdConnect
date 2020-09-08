@@ -49,12 +49,7 @@ function random_pass($length = 16, $keyspace = "abcdefghijklmnopqrstuvwxyzABCDEF
  */
 function is_token_unexpired($access_token): bool
 {
-	$idToken = $access_token->id_token;
-
-	$accessTokenUnexpired = isset($access_token->expires_at) && $access_token->expires_at >= time();
-	$idTokenUnexpired = !$idToken || $idToken->exp >= time(); 
-
-	return $accessTokenUnexpired && $idTokenUnexpired;
+	return isset($access_token->expires_at) && $access_token->expires_at >= time();
 }
 
 /// Event handlers
