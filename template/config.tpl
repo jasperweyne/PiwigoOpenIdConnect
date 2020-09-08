@@ -142,6 +142,8 @@
 			<label for="authparam">{'Authentication parameters'|translate}</label>
 			<br />
 			<input type="text" size=50 name="authparam" id="authparam" value="{$authparam}">
+			<br />
+			<i>{'Please provide parameters in a JSON array.'|translate}</i>
 		</li>
 	</ul>
 </fieldset>
