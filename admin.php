@@ -54,6 +54,10 @@ if (isset($_POST['save_config']))
 	$page['infos'][] = l10n('Settings saved.');
 }
 
+if (!$conf['allow_user_registration'] && $conf['OIDC']['register_new_users']) {
+	$page['warnings'][] = l10n('User registration is disabled in the Piwigo settings. This behaviour will be overridden by this plugin.');
+}
+
 $template->assign($conf['OIDC']);
 $template->assign(['redirect_url' => embellish_url(get_absolute_root_url() . OIDC_PATH . 'auth.php')]);
 
