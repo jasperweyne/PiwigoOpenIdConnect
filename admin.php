@@ -18,11 +18,17 @@ if (isset($_POST['password_test']))
 
 	try {
 		$response = $oidc->requestResourceOwnerToken(true);
-		if (isset($response->access_token)) {
-			$page['infos'][] = l10n('Resource owner credentials flow successful!');
-		} else {
+		if (!isset($response->access_token)) {
 			$page['errors'][] = $response->error . (isset($response->error_description) ? ': ' . $response->error_description : '');
 		}
+
+		$oidc->setAccessToken($response->access_token);
+		$sub = $oidc->requestUserInfo('sub');
+		if ($sub === null) {
+			$page['errors'][] = l10n('Server did not return user info');
+		}
+
+		$page['infos'][] = l10n('Resource owner credentials flow successful!');
 	} catch (\Exception $e) {
 		$page['errors'][] = $e->getMessage();
 	}

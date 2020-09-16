@@ -202,6 +202,7 @@ function password_login($success, $username, $password, $remember_me)
 	]);
 	$response = $oidc->requestResourceOwnerToken(true);
 	if (isset($response->access_token)) {
+		$oidc->setAccessToken($response->access_token);
 		$success = oidc_login($oidc, $response, $remember_me);
 	}
 
