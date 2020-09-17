@@ -56,7 +56,7 @@
 
 <fieldset id="mainConf">
     <legend>{'Authorization Code Flow'|translate}</legend>
-	<i style="display:inline-block;max-width:30rem">Please register '{$redirect_url}' as the redirect URL with your OpenID Provider.</i>
+	<i style="display:inline-block;max-width:30rem">Please register '{$redirect_url}' as the redirect URL with your OpenID Provider. Note that enabling this flow disables non-OpenID Connect account login. Make sure at least one OpenID Connect account has webmaster access rights.</i>
 	<ul>
 		<li>
 			<input type="checkbox" name="authorization_code_flow" id="authorization_code_flow" {if $authorization_code_flow}checked="checked"{/if}>
