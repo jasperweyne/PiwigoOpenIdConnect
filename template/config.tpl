@@ -34,6 +34,9 @@
     <legend>{'Test OpenID connection'|translate}</legend>
 	<ul>
 		<li>
+			<i style="display:inline-block;max-width:30rem;line-height:normal">{'Enabling a flow disables non-OpenID Connect account login. Please test your flow before enabling and make sure at least one OpenID Connect account has webmaster access rights. In case of failure, any config can be overridden by the conf.php found in the plugin folder.'|translate}</i>
+		</li>
+		<li>
 			<input form="test_auth" type="submit" name="authorization_test" value="{'Test authorization code flow'|translate}">
 			<input form="test_auth" type="submit" name="authorization_create" value="{'Create user with authorization code flow'|translate}">
 		</li>
@@ -58,7 +61,7 @@
 
 <fieldset id="mainConf">
     <legend>{'Authorization Code Flow'|translate}</legend>
-	<i style="display:inline-block;max-width:30rem">Please register '{$redirect_url}' as the redirect URL with your OpenID Provider. Note that enabling this flow disables non-OpenID Connect account login. Make sure at least one OpenID Connect account has webmaster access rights.</i>
+	<i style="display:inline-block;max-width:30rem">Please register '{$redirect_url}' as the redirect URL with your OpenID Provider.</i>
 	<ul>
 		<li>
 			<input type="checkbox" name="authorization_code_flow" id="authorization_code_flow" {if $authorization_code_flow}checked="checked"{/if}>
