@@ -58,13 +58,29 @@ function redirect_auth()
 	return false;
 }
 
-/// Login/logout methods
-function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
-{
+function get_preferred_username(OpenIDConnectClient $oidc) {
 	global $conf;
 	$config = $conf['OIDC'];
 
-	// Find user in piwigo database
+	// Note: this value must be unique, therefore we use sub
+	$name = $oidc->requestUserInfo('sub');
+	if (!empty($config['preferred_username'] && $preferred = $oidc->requestUserInfo($config['preferred_username']))) {
+		$name = $preferred;
+	}
+
+	return $name;
+}
+
+/// Login/logout methods
+function oidc_retrieve(OpenIDConnectClient $oidc, $force_registration = false) {
+	global $conf;
+	$config = $conf['OIDC'];
+
+	// Fetch user data
+	$sub = $oidc->requestUserInfo('sub');
+	$email = $oidc->requestUserInfo('email');
+	$name = get_preferred_username($oidc);
+
 	$sub = $oidc->requestUserInfo('sub');
 	$query = '
 		SELECT `user_id` AS id
@@ -72,17 +88,12 @@ function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
 		WHERE `sub` = \'' . pwg_db_real_escape_string($sub) . '\';';
 	$row = pwg_db_fetch_assoc(pwg_query($query));
 
-	// Fetch name
-	// Note: this value must be unique, therefore we use sub
-	$name = $oidc->requestUserInfo('sub');
-	if (!empty($config['preferred_username'] && $preferred = $oidc->requestUserInfo($config['preferred_username']))) {
-		$name = $preferred;
-	}
+	$name = get_preferred_username($oidc);
 	$email = $oidc->requestUserInfo('email');
 
 	// If the user is not found, try to register
 	if (empty($row['id'])) {
-		if ($config['register_new_users']) {
+		if ($config['register_new_users'] || $force_registration) {
 			// Registration is allowed, overwrite $row
 			$errors = [];
 			$row['id'] = register_user($name, random_pass(), $email, $config['notify_admins_on_register'], $errors, $config['notify_user_on_register']);
@@ -92,9 +103,25 @@ function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
 			]);
 		} else {
 			// Registration is not allowed, fail
-			return false;
+			return null;
 		}
 	}
+
+	return $row['id'];
+}
+
+function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
+{
+	global $conf;
+
+	// Find user in piwigo database
+	$id = oidc_retrieve($oidc);
+	if ($id === null) {
+		return false;
+	}
+
+	$name = get_preferred_username($oidc);
+	$email = $oidc->requestUserInfo('email');
 
 	// Store access token in the session
 	$_SESSION[OIDC_SESSION] = json_encode($token);
@@ -103,7 +130,7 @@ function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
 	$fields = array($conf['user_fields']['email'], $conf['user_fields']['username']);
 
 	$data = array();
-	$data[$conf['user_fields']['id']] = $row['id'];
+	$data[$conf['user_fields']['id']] = $id;
 	$data[$conf['user_fields']['email']] = $email;
 	$data[$conf['user_fields']['username']] = $name;
 	
@@ -115,7 +142,7 @@ function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
 				array($data));
 
 	// Log the user in
-	log_user($row['id'], $remember_me);
+	log_user($id, $remember_me);
 	trigger_notify('login_success', stripslashes($name));
 
 	return true;

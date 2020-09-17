@@ -6,15 +6,17 @@ require_once(PHPWG_ROOT_PATH.'include/common.inc.php');
 require_once(OIDC_PATH . 'oidc.php');
 
 // Test or authentication flow preperations
-if (isset($_SESSION[OIDC_SESSION . 'test'])) {
+if (isset($_SESSION[OIDC_SESSION . '_auth'])) {
+    $value = $_SESSION[OIDC_SESSION . '_auth'];
+
     // Disable test flow, in case of invalid access
-    unset($_SESSION[OIDC_SESSION . 'test']);
+    unset($_SESSION[OIDC_SESSION . '_auth']);
 
     // Check if eligible to perform test
     check_status(ACCESS_ADMINISTRATOR);
 
     // Re-enable test flow
-    $_SESSION[OIDC_SESSION . 'test'] = 'exec';
+    $_SESSION[OIDC_SESSION . '_auth'] = $value;
 } else {
     // Check if authorization flow is enabled
     if (!can_authorization_grant()) {
@@ -36,13 +38,18 @@ try {
     $success = $oidc->authenticate();
 
     // Test flow
-    if (isset($_SESSION[OIDC_SESSION . 'test'])) {
-        if ($success) {
+    if (isset($_SESSION[OIDC_SESSION . '_auth'])) {
+        // Create flow
+        if ($success && $_SESSION[OIDC_SESSION . '_auth'] === 'create') {
+            $success = oidc_retrieve($oidc, true) !== null;
+        }
+
+        if ($success && $oidc->requestUserInfo('sub') !== null) {
             echo "Successful!";
         } else {
             echo "Problem detected, check your settings.";
         }
-        unset($_SESSION[OIDC_SESSION . 'test']);
+        unset($_SESSION[OIDC_SESSION . '_auth']);
         exit;
     }
 
@@ -54,8 +61,8 @@ try {
     }
 } catch (\Exception $e) {
     // Test flow
-    if (isset($_SESSION[OIDC_SESSION . 'test'])) {
-        unset($_SESSION[OIDC_SESSION . 'test']);
+    if (isset($_SESSION[OIDC_SESSION . '_auth'])) {
+        unset($_SESSION[OIDC_SESSION . '_auth']);
         echo $e->getMessage();
         exit;
     }

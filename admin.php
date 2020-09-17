@@ -2,13 +2,19 @@
 
 defined('OIDC_PATH') or die('Hacking attempt!');
 
-if (isset($_POST['authorization_test']))
+if (isset($_POST['authorization_create']))
 {
-	$_SESSION[OIDC_SESSION . 'test'] = 'init';
+	$_SESSION[OIDC_SESSION . '_auth'] = 'create';
 	redirect(OIDC_PATH . 'auth.php'); 
 }
 
-if (isset($_POST['password_test']))
+if (isset($_POST['authorization_test']))
+{
+	$_SESSION[OIDC_SESSION . '_auth'] = 'test';
+	redirect(OIDC_PATH . 'auth.php'); 
+}
+
+if (isset($_POST['password_test']) || isset($_POST['password_create']))
 {
 	$oidc = get_oidc_client();
 	$oidc->addAuthParam([
@@ -28,7 +34,16 @@ if (isset($_POST['password_test']))
 			$page['errors'][] = l10n('Server did not return user info');
 		}
 
-		$page['infos'][] = l10n('Resource owner credentials flow successful!');
+		if (isset($_POST['password_create'])) {
+			$user_id = oidc_retrieve($oidc, true);
+			if ($user_id !== null) {
+				$page['infos'][] = l10n('User added to Piwigo!');
+			} else {
+				$page['errors'][] = l10n('A problem occurred during user registration.');
+			}
+		} else {
+			$page['infos'][] = l10n('Resource owner credentials flow successful!');
+		}
 	} catch (\Exception $e) {
 		$page['errors'][] = $e->getMessage();
 	}

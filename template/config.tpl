@@ -35,6 +35,7 @@
 	<ul>
 		<li>
 			<input form="test_auth" type="submit" name="authorization_test" value="{'Test authorization code flow'|translate}">
+			<input form="test_auth" type="submit" name="authorization_create" value="{'Create user with authorization code flow'|translate}">
 		</li>
 	</ul>
 	<ul>
@@ -50,6 +51,7 @@
 		</li>
 		<li>
 			<input form="test_pass" type="submit" name="password_test" value="{'Test resource owner credentials flow'|translate}">
+			<input form="test_pass" type="submit" name="password_create" value="{'Create user with resource owner credentials flow'|translate}">
 		</li>
 	</ul>
 </fieldset>
