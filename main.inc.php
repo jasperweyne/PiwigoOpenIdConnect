@@ -26,8 +26,8 @@ add_event_handler('load_profile_in_template', 'oidc_profile');
 add_event_handler('blockmanager_apply', 'override_login_link');
 add_event_handler('loc_begin_password', 'oidc_redirect');
 add_event_handler('loc_begin_register', 'oidc_redirect');
-add_event_handler('try_log_user', 'password_login', 0, 4);
-add_event_handler('loc_begin_identification', 'oidc_identification');
+add_event_handler('try_log_user', 'password_login');
+add_event_handler('loc_end_identification', 'oidc_identification');
 add_event_handler('user_init', 'refresh_login');
 add_event_handler('get_admin_plugin_menu_links', 'oidc_admin_link');
 add_event_handler('delete_user', 'oidc_delete_user');
@@ -113,7 +113,9 @@ function oidc_identification()
 				$template->assign('U_LOST_PASSWORD', $conf['OIDC']['password_reset_url']);
 			else
 				$template->clear_assign('U_LOST_PASSWORD');
+		}
 
+		if ($template->get_template_vars('U_REGISTER') !== null) {
 			// Registration URL
 			if (!empty($conf['OIDC']['registration_url']))
 				$template->assign('U_REGISTER', $conf['OIDC']['registration_url']);
@@ -177,7 +179,6 @@ function refresh_login($user)
 
 /**
  * Use the given input to begin the resource owner credentials flow
- * WARNING: This flow must ONLY be used when the Piwigo server can be trusted
  */
 function password_login($success, $username, $password, $remember_me)
 {
@@ -200,10 +201,15 @@ function password_login($success, $username, $password, $remember_me)
 		'username' => $username,
 		'password' => $password,
 	]);
-	$response = $oidc->requestResourceOwnerToken(true);
-	if (isset($response->access_token)) {
-		$oidc->setAccessToken($response->access_token);
-		$success = oidc_login($oidc, $response, $remember_me);
+
+	try {
+		$response = $oidc->requestResourceOwnerToken(true);
+		if (isset($response->access_token)) {
+			$oidc->setAccessToken($response->access_token);
+			$success = oidc_login($oidc, $response, $remember_me);
+		}
+	} catch (\Exception $e) {
+		// silently fail
 	}
 
 	// If login unsuccessful, trigger login_failure accordingly

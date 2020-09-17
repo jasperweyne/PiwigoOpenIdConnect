@@ -134,7 +134,7 @@
 			<i>{'This claim is used for local identification and must return a unique value for each user. Falls back to \'sub\'.'|translate}</i>
 		</li>
 		<li>
-			<label for="proxy">{'Proxy'|translate}</label>
+			<label for="proxy">{'HTTP Proxy'|translate}</label>
 			<br />
 			<input type="text" size=50 name="proxy" id="proxy" value="{$proxy}">
 		</li>

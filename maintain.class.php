@@ -49,6 +49,8 @@ class OpenIdConnect_maintain extends PluginMaintain
 
 	function uninstall()
 	{
+		global $prefixeTable;
+		
 		conf_delete_param('OIDC');
 
 		$query="DROP TABLE IF EXISTS `" . $prefixeTable . "oidc`;";
