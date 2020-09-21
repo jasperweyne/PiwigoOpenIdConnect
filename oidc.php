@@ -1,4 +1,19 @@
 <?php
+/*
+   Copyright 2020 Jasper Weyne
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 
 defined('PHPWG_ROOT_PATH') or die('Hacking attempt!');
 
@@ -6,6 +21,9 @@ require __DIR__ . '/vendor/autoload.php';
 
 use Jumbojett\OpenIDConnectClient;
 
+/**
+ * Create an instance of OpenIDConnectClient with the configured settings
+ */
 function get_oidc_client() {
 	global $conf;
 	$config = $conf['OIDC'];
@@ -37,17 +55,26 @@ function get_oidc_client() {
 	return $oidc;
 }
 
+/**
+ * Return whether the authorization code flow is enabled from config
+ */
 function can_authorization_grant() {
 	global $conf;
 	return $conf['OIDC']['authorization_code_flow'];
 }
 
+/**
+ * Return whether the resource owner credentials flow is enabled from config
+ */
 function can_resource_owner_credentials_grant() {
 	global $conf;
 	return $conf['OIDC']['password_flow'];
 }
 
-// Redirect a user to the auth.php page, which handles authorization flow
+/**
+ * Redirect a user to the auth.php page if enabled
+ * If disabled, returns false
+ */ 
 function redirect_auth()
 {
 	if (can_authorization_grant()) {
@@ -58,6 +85,10 @@ function redirect_auth()
 	return false;
 }
 
+/**
+ * Get the preferred username of the resource owner
+ * Resource owner is authenticated by the access token, stored in $oidc
+ */
 function get_preferred_username(OpenIDConnectClient $oidc) {
 	global $conf;
 	$config = $conf['OIDC'];
@@ -72,6 +103,10 @@ function get_preferred_username(OpenIDConnectClient $oidc) {
 }
 
 /// Login/logout methods
+/**
+ * Retrieve Piwigo user associated with the current OIDC resource owner
+ * Resource owner is authenticated by the access token, stored in $oidc
+ */
 function oidc_retrieve(OpenIDConnectClient $oidc, $force_registration = false) {
 	global $conf;
 	$config = $conf['OIDC'];
@@ -81,15 +116,12 @@ function oidc_retrieve(OpenIDConnectClient $oidc, $force_registration = false) {
 	$email = $oidc->requestUserInfo('email');
 	$name = get_preferred_username($oidc);
 
-	$sub = $oidc->requestUserInfo('sub');
+	// Try to find the resource owner in the OIDC user table
 	$query = '
 		SELECT `user_id` AS id
 		FROM ' . OIDC_TABLE . '
 		WHERE `sub` = \'' . pwg_db_real_escape_string($sub) . '\';';
 	$row = pwg_db_fetch_assoc(pwg_query($query));
-
-	$name = get_preferred_username($oidc);
-	$email = $oidc->requestUserInfo('email');
 
 	// If the user is not found, try to register
 	if (empty($row['id'])) {
@@ -110,6 +142,9 @@ function oidc_retrieve(OpenIDConnectClient $oidc, $force_registration = false) {
 	return $row['id'];
 }
 
+/**
+ * Log the Piwigo user associated with the provided $token, through the current $oidc session
+ */
 function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
 {
 	global $conf;
@@ -148,6 +183,9 @@ function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
 	return true;
 }
 
+/**
+ * Log out the currently logged in user and redirect to the login page
+ */
 function oidc_logout()
 {
 	logout_user();

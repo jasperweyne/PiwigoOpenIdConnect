@@ -7,6 +7,22 @@ Plugin URI: auto
 Author: Jasper Weyne
 */
 
+/*
+   Copyright 2020 Jasper Weyne
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 defined('PHPWG_ROOT_PATH') or die('Hacking attempt!');
 
 /// Define plugin constants
@@ -56,13 +72,17 @@ function is_token_unexpired($access_token): bool
 }
 
 /// Event handlers
+/**
+ * Deserialize the database-stored contents of plugin settings
+ * Override them with contents of conf.php
+ */
 function oidc_init()
 {
 	global $conf;
 	$conf['OIDC'] = safe_unserialize($conf['OIDC']);
 
 	if (file_exists(OIDC_PATH . 'conf.php')) {
-		$overrideConfig = include(OIDC_PATH . 'conf.php');
+		$overrideConfig = (include OIDC_PATH . 'conf.php');
 		$conf['OIDC'] = array_merge($conf['OIDC'], $overrideConfig);
 	}
 }
@@ -80,7 +100,7 @@ function oidc_profile()
 }
 
 /**
- * Rewrite the login link to link to the authorization code flow
+ * Rewrite the login link in menu to link to the authorization code flow
  */
 function override_login_link()
 {
@@ -99,6 +119,9 @@ function override_login_link()
 	}
 }
 
+/**
+ * Rewrite the contents of the identification.php where applicable 
+ */
 function oidc_identification()
 {
 	global $template;
@@ -125,6 +148,9 @@ function oidc_identification()
 	}
 }
 
+/**
+ * Redirect for password.php and register.php if applicable 
+ */
 function oidc_redirect()
 {
 	redirect_auth();
@@ -220,6 +246,9 @@ function password_login($success, $username, $password, $remember_me)
 	return $success;
 }
 
+/**
+ * Add OpenID Connect menu entry to plugins
+ */
 function oidc_admin_link($menu) 
 {
 	$menu[] = [
@@ -229,6 +258,9 @@ function oidc_admin_link($menu)
 	return $menu;
 }
 
+/**
+ * Delete users from the OIDC user table if applicable
+ */
 function oidc_delete_user($user_id)
 {
 	$query = '

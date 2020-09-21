@@ -1,4 +1,13 @@
 {
+    "name": "jasperweyne/piwigo_oidc",
+    "description": "A Piwigo plugin for OpenID Connect authentication of users.",
+    "license": "apache-2.0",
+    "authors": [
+        {
+            "name": "Jasper Weyne",
+            "email": "jasperweyne@gmail.com"
+        }
+    ],
     "require": {
         "jumbojett/openid-connect-php": "^0.9.1"
     }
