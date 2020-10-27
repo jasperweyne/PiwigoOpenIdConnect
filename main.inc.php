@@ -68,7 +68,7 @@ function random_pass($length = 16, $keyspace = "abcdefghijklmnopqrstuvwxyzABCDEF
  */
 function is_token_unexpired($access_token): bool
 {
-	return isset($access_token->expires_at) && $access_token->expires_at >= time();
+	return isset($access_token->expires) && $access_token->expires >= time();
 }
 
 /// Event handlers
@@ -195,7 +195,17 @@ function refresh_login($user)
 	// Try to obtain refreshed access token
 	try {
 		$oidc = get_oidc_client();
-		$_SESSION[OIDC_SESSION] = json_encode($oidc->refreshToken($accessToken->refresh_token));
+		$response = $oidc->refreshToken($accessToken->refresh_token);
+		if (isset($response->refresh_token)) {
+			$accessToken->refresh_token = $response->refresh_token;
+		}
+		if (isset($response->access_token)) {
+			$accessToken->access_token = $response->access_token;
+		}
+		if (isset($response->expires_in)) {
+			$accessToken->expires = time() + $response->expires_in;
+		}
+		$_SESSION[OIDC_SESSION] = json_encode($accessToken);
 	} catch (\Exception $e) {
 		// Log out if an unknown problem arises
 		$page['errors'][] = $e->getMessage();

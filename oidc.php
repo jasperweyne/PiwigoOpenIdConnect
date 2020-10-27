@@ -159,7 +159,11 @@ function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
 	$email = $oidc->requestUserInfo('email');
 
 	// Store access token in the session
-	$_SESSION[OIDC_SESSION] = json_encode($token);
+	$_SESSION[OIDC_SESSION] = json_encode([
+		'refresh_token' => $token['refresh_token'],
+		'access_token' => $token['access_token'],
+		'expires' => time() + $token['expires_in']
+	]);
 
 	// Update user data from ID token data
 	$fields = array($conf['user_fields']['email'], $conf['user_fields']['username']);
