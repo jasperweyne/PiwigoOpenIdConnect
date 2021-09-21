@@ -1,9 +1,9 @@
 <?php
 /*
 Plugin Name: OpenId Connect
-Version: auto
+Version: 1.0.3
 Description: This plugin provides OpenID Connect integration.
-Plugin URI: auto
+Plugin URI: http://piwigo.org/ext/extension_view.php?eid=918
 Author: Jasper Weyne
 */
 
