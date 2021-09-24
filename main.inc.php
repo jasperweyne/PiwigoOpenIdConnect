@@ -8,7 +8,7 @@ Author: Jasper Weyne
 */
 
 /*
-   Copyright 2020 Jasper Weyne
+   Copyright 2020-2021 Jasper Weyne
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -66,9 +66,20 @@ function random_pass($length = 16, $keyspace = "abcdefghijklmnopqrstuvwxyzABCDEF
 /**
  * Check whether an access token or OpenID token isn't expired.
  */
-function is_token_unexpired($access_token): bool
+function is_token_unexpired($access_token, $oidc): bool
 {
-	return isset($access_token->expires) && $access_token->expires >= time();
+	if (isset($access_token->expires)) {
+		return $access_token->expires >= time();
+	} else {
+		// If user info retrieval is successful, token is still valid
+		try {
+			$oidc->setAccessToken($access_token->access_token);
+			$oidc->requestUserInfo();
+			return true;
+		} catch (\Exception $e) {
+			return false;
+		}
+	}
 }
 
 /// Event handlers
@@ -188,13 +199,13 @@ function refresh_login($user)
 	$accessToken = json_decode($json);
 
 	// If the token is not expired, refreshing isn't necessary
-	if (is_token_unexpired($accessToken)) {
+	$oidc = get_oidc_client();
+	if (is_token_unexpired($accessToken, $oidc)) {
 		return;
 	}
 
 	// Try to obtain refreshed access token
 	try {
-		$oidc = get_oidc_client();
 		$response = $oidc->refreshToken($accessToken->refresh_token);
 		if (isset($response->refresh_token)) {
 			$accessToken->refresh_token = $response->refresh_token;
