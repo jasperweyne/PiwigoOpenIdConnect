@@ -1,6 +1,6 @@
 <?php
 /*
-   Copyright 2020 Jasper Weyne
+   Copyright 2020-2021 Jasper Weyne
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -159,11 +159,17 @@ function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
 	$email = $oidc->requestUserInfo('email');
 
 	// Store access token in the session
-	$_SESSION[OIDC_SESSION] = json_encode([
-		'refresh_token' => $token->refresh_token,
-		'access_token' => $token->access_token,
-		'expires' => time() + $token->expires_in
-	]);
+    $encoded = array();
+	if (isset($token->access_token)) {
+		$encoded['access_token'] = $token->access_token;
+	}
+	if (isset($token->refresh_token)) {
+		$encoded['refresh_token'] = $token->refresh_token;
+	}
+	if (isset($token->expires_in)) {
+		$encoded['expires'] = time() + $token->expires_in;
+	}
+	$_SESSION[OIDC_SESSION] = json_encode($encoded);
 
 	// Update user data from ID token data
 	$fields = array($conf['user_fields']['email'], $conf['user_fields']['username']);

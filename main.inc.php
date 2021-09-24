@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: OpenId Connect
-Version: 1.0.3
+Version: 1.0.4
 Description: This plugin provides OpenID Connect integration.
 Plugin URI: http://piwigo.org/ext/extension_view.php?eid=918
 Author: Jasper Weyne
@@ -47,6 +47,7 @@ add_event_handler('loc_end_identification', 'oidc_identification');
 add_event_handler('user_init', 'refresh_login');
 add_event_handler('get_admin_plugin_menu_links', 'oidc_admin_link');
 add_event_handler('delete_user', 'oidc_delete_user');
+add_event_handler('ws_add_methods', 'oidc_api');
 
 /// Utility methods
 /**
@@ -289,5 +290,23 @@ function oidc_delete_user($user_id)
 	  WHERE `user_id` = '.$user_id.'
 	;';
 	pwg_query($query);
+}
+
+/**
+ * Register WS API methods 
+ */
+function oidc_api($params)
+{
+	$service = &$params[0];
+	$service->addMethod(
+		'pwg.session.login_oidc',
+		'api_login',
+		array(
+			'access_token' => array(),
+		),
+		'Tries to login the user using an OIDC token.',
+		OIDC_PATH . 'api.php',
+		array('post_only' => true)
+	);
 }
 ?>
