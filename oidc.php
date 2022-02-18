@@ -128,7 +128,16 @@ function oidc_retrieve(OpenIDConnectClient $oidc, $force_registration = false) {
 		if ($config['register_new_users'] || $force_registration) {
 			// Registration is allowed, overwrite $row
 			$errors = [];
-			$row['id'] = register_user($name, random_pass(), $email, $config['notify_admins_on_register'], $errors, $config['notify_user_on_register']);
+			$existing_user_query = '
+				SELECT `id`
+				FROM users
+				WHERE `username` = \'' . $name . '\';';
+			$existing_user_row = pwg_db_fetch_assoc(pwg_query($existing_user_query));
+			if (empty($existing_user_row['id'])) {
+				$row['id'] = register_user($name, random_pass(), $email, $config['notify_admins_on_register'], $errors, $config['notify_user_on_register']);
+			} else {
+				$row['id'] = $existing_user_row['id'];
+			}
 			single_insert(OIDC_TABLE, [
 				'sub' => $sub,
 				'user_id' => $row['id'],
