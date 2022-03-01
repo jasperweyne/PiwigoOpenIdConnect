@@ -37,6 +37,8 @@ class OpenIdConnect_maintain extends PluginMaintain
 		'password_flow' => false,
 		'password_reset_url' => '',
 		'registration_url' => '',
+		'allowed_groups' => '',
+		'groups_claim' => '',
 	];
 
 	function install($plugin_version, &$errors=array())

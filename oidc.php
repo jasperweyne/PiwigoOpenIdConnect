@@ -126,6 +126,26 @@ function oidc_retrieve(OpenIDConnectClient $oidc, $force_registration = false) {
 	// If the user is not found, try to register
 	if (empty($row['id'])) {
 		if ($config['register_new_users'] || $force_registration) {
+			// check if user is member of allowed groups, if any is set
+			$groups_claim = $config['groups_claim'] ?: 'groups';
+			$groups = $oidc->requestUserInfo($groups_claim);
+			$allowed_groups = $config['allowed_groups'];
+			if(!empty($allowed_groups)) {
+				if(empty($groups)){
+					return null;
+				}
+				$allowed_groups_array = preg_split("/\s+/", $allowed_groups);
+				$allowed = false;
+				foreach ($allowed_groups_array as $allowed_group) {
+					if (in_array($allowed_group, $groups)) {
+						$allowed = true;
+						break;
+					}
+				}
+				if (!$allowed) {
+					return null;
+				}
+			}
 			// Registration is allowed, overwrite $row
 			$errors = [];
 			$row['id'] = register_user($name, random_pass(), $email, $config['notify_admins_on_register'], $errors, $config['notify_user_on_register']);
@@ -170,6 +190,28 @@ function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
 		$encoded['expires'] = time() + $token->expires_in;
 	}
 	$_SESSION[OIDC_SESSION] = json_encode($encoded);
+
+	// check if user is member of allowed groups, if any is set
+	$groups_claim = $oidc_config['groups_claim'] ?: 'groups';
+	$groups = $oidc->requestUserInfo($groups_claim);
+	$oidc_config = $conf['OIDC'];
+
+	if (!empty($oidc_config['allowed_groups'])) {
+		if (empty($groups)) {
+			return false;
+		}
+		$allowed_groups_array = preg_split("/\s+/", $oidc_config['allowed_groups']);
+		$allowed = false;
+		foreach ($allowed_groups_array as $allowed_group) {
+			if (in_array($allowed_group, $groups)) {
+				$allowed = true;
+				break;
+			}
+		}
+		if (!$allowed) {
+			return false;
+		}
+	}
 
 	// Update user data from ID token data
 	$fields = array($conf['user_fields']['email'], $conf['user_fields']['username']);
