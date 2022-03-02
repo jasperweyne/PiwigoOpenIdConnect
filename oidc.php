@@ -126,25 +126,8 @@ function oidc_retrieve(OpenIDConnectClient $oidc, $force_registration = false) {
 	// If the user is not found, try to register
 	if (empty($row['id'])) {
 		if ($config['register_new_users'] || $force_registration) {
-			// check if user is member of allowed groups, if any is set
-			$groups_claim = $config['groups_claim'] ?: 'groups';
-			$groups = $oidc->requestUserInfo($groups_claim);
-			$allowed_groups = $config['allowed_groups'];
-			if(!empty($allowed_groups)) {
-				if(empty($groups)){
-					return null;
-				}
-				$allowed_groups_array = preg_split("/\s+/", $allowed_groups);
-				$allowed = false;
-				foreach ($allowed_groups_array as $allowed_group) {
-					if (in_array($allowed_group, $groups)) {
-						$allowed = true;
-						break;
-					}
-				}
-				if (!$allowed) {
-					return null;
-				}
+			if(!user_in_allowed_groups($oidc, $conf)) {
+				return null;
 			}
 			// Registration is allowed, overwrite $row
 			$errors = [];
@@ -192,27 +175,10 @@ function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
 	$_SESSION[OIDC_SESSION] = json_encode($encoded);
 
 	// check if user is member of allowed groups, if any is set
-	$groups_claim = $oidc_config['groups_claim'] ?: 'groups';
-	$groups = $oidc->requestUserInfo($groups_claim);
-	$oidc_config = $conf['OIDC'];
-
-	if (!empty($oidc_config['allowed_groups'])) {
-		if (empty($groups)) {
-			return false;
-		}
-		$allowed_groups_array = preg_split("/\s+/", $oidc_config['allowed_groups']);
-		$allowed = false;
-		foreach ($allowed_groups_array as $allowed_group) {
-			if (in_array($allowed_group, $groups)) {
-				$allowed = true;
-				break;
-			}
-		}
-		if (!$allowed) {
-			return false;
-		}
+	if (!user_in_allowed_groups($oidc, $conf)) {
+		return false;
 	}
-
+	
 	// Update user data from ID token data
 	$fields = array($conf['user_fields']['email'], $conf['user_fields']['username']);
 
@@ -242,5 +208,30 @@ function oidc_logout()
 {
 	logout_user();
 	redirect_auth() or redirect('identification.php');
+}
+
+function user_in_allowed_groups(OpenIDConnectClient $oidc, $conf) {
+	// check if user is member of allowed groups, if any is set
+	$oidc_config = $conf['OIDC'];
+	$groups_claim = $oidc_config['groups_claim'] ?: 'groups';
+	$user_groups = $oidc->requestUserInfo($groups_claim);
+
+	$allowed = true;
+	$allowed_groups = $oidc_config['allowed_groups'];
+
+	if (!empty($allowed_groups)) {
+		if (empty($user_groups)) {
+			return false;
+		}
+		$allowed = false;
+		$allowed_groups_array = preg_split("/\s+/", $allowed_groups);
+		foreach ($allowed_groups_array as $allowed_group) {
+			if (in_array($allowed_group, $user_groups)) {
+				$allowed = true;
+				break;
+			}
+		}
+	}
+	return $allowed;
 }
 ?>
