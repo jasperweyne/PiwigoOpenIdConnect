@@ -139,6 +139,20 @@
 			<i>{'This claim is used for local identification and must return a unique value for each user. Falls back to \'sub\'.'|translate}</i>
 		</li>
 		<li>
+			<label for="allowed_groups">{'Allowed groups'|translate}</label>
+			<br />
+			<input type="text" size=50 name="allowed_groups" id="allowed_groups" value="{$allowed_groups}">
+			<br />
+			<i>{'Space separated list of groups from which users can log into piwigo.'|translate}</i>
+		</li>
+		<li>
+			<label for="groups_claim">{'Groups claim'|translate}</label>
+			<br />
+			<input type="text" size=50 name="groups_claim" id="groups_claim" value="{$groups_claim}">
+			<br />
+			<i>{'Name of the claim containing the groups list. Falls back to \'groups\'.'|translate}</i>
+		</li>
+		<li>
 			<label for="proxy">{'HTTP Proxy'|translate}</label>
 			<br />
 			<input type="text" size=50 name="proxy" id="proxy" value="{$proxy}">

@@ -91,6 +91,8 @@ if (isset($_POST['save_config']))
 		'password_flow' => isset($_POST['password_flow']), 
 		'password_reset_url' => $_POST['password_reset_url'], 
 		'registration_url' => $_POST['registration_url'],
+		'allowed_groups' => $_POST['allowed_groups'],
+		'groups_claim' => $_POST['groups_claim'],
 	];
 
 	conf_update_param('OIDC', $conf['OIDC']);
