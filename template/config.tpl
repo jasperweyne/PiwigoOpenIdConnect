@@ -127,6 +127,10 @@
 			<label for="verify_peer">{'Enable SSL peer verification'|translate}</label>
 		</li>
 		<li>
+			<input type="checkbox" name="openid_logout" id="openid_logout" {if $openid_logout}checked="checked"{/if}>
+			<label for="openid_logout">{'Enable OpenID logout'|translate}</label>
+		</li>
+		<li>
 			<label for="scope">{'Scopes'|translate}</label>
 			<br />
 			<input type="text" size=50 name="scope" id="scope" value="{$scope}">
@@ -160,3 +164,4 @@
 <div style="text-align:right;">
   Developed by Jasper Weyne
 </div>
+
