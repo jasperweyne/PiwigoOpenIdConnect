@@ -82,6 +82,7 @@ if (isset($_POST['save_config']))
 		'proxy' => $_POST['proxy'], 
 		'verify_host' => isset($_POST['verify_host']), 
 		'verify_peer' => isset($_POST['verify_peer']), 
+		'openid_logout' => isset($_POST['openid_logout']), 
 		'authparam' => $_POST['authparam'], 
 		'register_new_users' => isset($_POST['register_new_users']), 
 		'redirect_new_to_profile' => isset($_POST['redirect_new_to_profile']), 

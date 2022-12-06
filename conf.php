@@ -26,6 +26,7 @@ return [
     // 'proxy' => '',
     // 'verify_host' => false,
     // 'verify_peer' => false,
+    // 'openid_logout' => false,
     // 'authparam' => '',
     // 'register_new_users' => false,
     // 'redirect_new_to_profile' => false,

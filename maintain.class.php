@@ -28,6 +28,7 @@ class OpenIdConnect_maintain extends PluginMaintain
 		'proxy' => '',
 		'verify_host' => true,
 		'verify_peer' => true,
+		'openid_logout' => false,
 		'authparam' => '',
 		'register_new_users' => true,
 		'redirect_new_to_profile' => false,

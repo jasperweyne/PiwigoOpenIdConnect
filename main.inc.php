@@ -45,6 +45,7 @@ add_event_handler('blockmanager_apply', 'override_login_link');
 add_event_handler('loc_begin_password', 'oidc_redirect');
 add_event_handler('loc_begin_register', 'oidc_redirect');
 add_event_handler('try_log_user', 'password_login');
+add_event_handler('user_logout', 'oidc_logout');
 add_event_handler('loc_end_identification', 'oidc_identification');
 add_event_handler('user_init', 'refresh_login');
 add_event_handler('get_admin_plugin_menu_links', 'oidc_admin_link');
@@ -196,7 +197,7 @@ function refresh_login($user)
 
 	// If no access token was found, reject the refresh
 	if (!$json) {
-		oidc_logout();
+		oidc_logout_local();
 	}
 
 	$accessToken = json_decode($json);
@@ -216,6 +217,9 @@ function refresh_login($user)
 		if (isset($response->access_token)) {
 			$accessToken->access_token = $response->access_token;
 		}
+		if (isset($response->id_token)) {
+			$accessToken->id_token = $response->id_token;
+		}
 		if (isset($response->expires_in)) {
 			$accessToken->expires = time() + $response->expires_in;
 		}
@@ -223,7 +227,7 @@ function refresh_login($user)
 	} catch (\Exception $e) {
 		// Log out if an unknown problem arises
 		$page['errors'][] = $e->getMessage();
-		oidc_logout();
+		oidc_logout_local();
 	}
 }
 
@@ -311,4 +315,39 @@ function oidc_api($params)
 		array('post_only' => true)
 	);
 }
+
+/**
+ * Log out the currently logged in user and redirect to the main page
+ * If openid_logout is set, logout from openid as well
+ */
+function oidc_logout()
+{
+	global $conf;
+	$config = $conf['OIDC'];
+
+	if (!empty($config['openid_logout'])) {
+		// Retrieve access token for current session
+		$json = $_SESSION[OIDC_SESSION];
+
+		// If no access token was found, do local logout only
+		if (!$json) {
+			oidc_logout_local();
+		}
+		$tokens = json_decode($json);
+		$idToken = $tokens->id_token;
+
+		// avoid loop of logout_user()
+		remove_event_handler('user_logout', 'oidc_logout');
+		logout_user();
+
+		$piwigo_url = get_absolute_root_url();
+
+		$oidc = get_oidc_client();
+		
+		// logout from openid and redirect to main piwigo page
+		$oidc->signOut($idToken, $piwigo_url);
+		exit;
+	}
+}
+
 ?>

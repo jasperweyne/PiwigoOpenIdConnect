@@ -163,6 +163,9 @@ function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
 	if (isset($token->access_token)) {
 		$encoded['access_token'] = $token->access_token;
 	}
+	if (isset($token->id_token)) {
+		$encoded['id_token'] = $token->id_token;
+	}
 	if (isset($token->refresh_token)) {
 		$encoded['refresh_token'] = $token->refresh_token;
 	}
@@ -194,9 +197,9 @@ function oidc_login(OpenIDConnectClient $oidc, $token, $remember_me)
 }
 
 /**
- * Log out the currently logged in user and redirect to the login page
+ * Log out the currently logged in user (from piwigo only) and redirect to the login page
  */
-function oidc_logout()
+function oidc_logout_local()
 {
 	logout_user();
 	redirect_auth() or redirect('identification.php');
