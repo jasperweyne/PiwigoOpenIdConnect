@@ -205,3 +205,4 @@ function oidc_logout_local()
 	redirect_auth() or redirect('identification.php');
 }
 ?>
+
