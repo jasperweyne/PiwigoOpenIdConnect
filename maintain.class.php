@@ -23,6 +23,8 @@ class OpenIdConnect_maintain extends PluginMaintain
 		'issuer_url' => '',
 		'client_id' => '',
 		'client_secret' => '',
+		'password_test_user' => '',
+		'password_test_pass' => '',
 		'scope' => 'openid profile email',
 		'preferred_username' => '',
 		'proxy' => '',
