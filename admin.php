@@ -77,6 +77,11 @@ if (isset($_POST['save_config']))
 		'issuer_url' => $_POST['issuer_url'], 
 		'client_id' => $_POST['client_id'], 
 		'client_secret' => $_POST['client_secret'], 
+		// We want to save password_test_user and password_test_pass
+		// to prevent PHP from raising an error
+		// We reset the two values as they may contains sensitive data
+		'password_test_user' => '', 
+		'password_test_pass' => '', 
 		'scope' => $_POST['scope'], 
 		'preferred_username' => $_POST['preferred_username'], 
 		'proxy' => $_POST['proxy'], 
